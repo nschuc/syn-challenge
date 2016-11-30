@@ -1,6 +1,9 @@
 import std.stdio;
 import std.file;
 import std.conv : to;
+import std.string : leftJustify;
+
+ushort[ushort] functions;
 
 string[] op_names = [
     "halt", "set", "push", "pop", "eq", "gt", "jmp", "jt", "jf", "add", "mult", "mod", "and", "or", "not", "rmem", "wmem", "call", "ret", "out", "in", "nop" 
@@ -14,6 +17,21 @@ string rov(T)(T val)
     }
     else
         return to!string(val);
+}
+
+string gen_comment(ref ushort[] code, int instr) {
+    string comment = "; ";
+    if(code[instr] == 17) {
+        comment ~= "function call ";
+        functions[code[instr+1]] = 1;
+    }
+    if(code[instr] > 21 ) {
+        comment ~= "data ";
+    }
+    if(to!ushort(instr) in functions) 
+        comment ~= "function def ";
+
+    return comment;
 }
 
 auto num_params(ushort op) {
@@ -43,11 +61,13 @@ auto num_params(ushort op) {
 }
 
 void disas(string name, ref ushort[] code) {
+    const col = 25;
     char[] buf;
     for(int i = 0; i < code.length;++i) {
         string line;
+        string comment = gen_comment(code, i);
         if(code[i] > 21) {
-            line = "garbage" ~ to!string(code[i]);
+            line = to!string(code[i]);
         }
         else {
             auto p = num_params(code[i]);
@@ -56,7 +76,7 @@ void disas(string name, ref ushort[] code) {
             i += p;
             writeln(line);
         }
-        buf ~= line ~ "\n";
+        buf ~= leftJustify(line, col) ~ comment ~ "\n";
     }
     std.file.write(name, buf);
 }
