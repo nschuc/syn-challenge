@@ -77,7 +77,6 @@ void disas(string name, ref ushort[] code) {
             code[i .. i+p+3].map!(a => rov(a));
             foreach(j; 0 .. p) line ~= " " ~ rov(code[i + j + 1]);
             i += p;
-            writeln(line);
         }
         buf ~= leftJustify(line, col) ~ comment ~ "\n";
     }

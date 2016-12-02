@@ -1,9 +1,13 @@
 module vm;
 import std.stdio;
 import std.file;
+import std.container : SList;
+import util;
 
 ushort[32776] RAM;
 ushort[] stack;
+auto callstack = SList!ushort();
+string[ushort] callstack_labels;
 ushort PC = 0;
 ushort SP = 0;
 
@@ -12,28 +16,6 @@ string[] op_names = [
 ]; 
 
 string stdin_buf;
-
-void dbg() {
-    writeln("PC: ", PC, " OP_CODE: ", RAM[PC]);
-    assert(RAM[PC] <= 21);
-    writeln("OP_NAME: ", op_names[RAM[PC]]);
-    foreach(i; 0..3) writeln(cast(char)('A' + i), ": ", RAM[PC + i + 1]);
-    foreach(i ; 0..8)
-        writeln(i, " r: ", RAM[32768 + i]);
-    for(int i = 0; i < stack.length; ++i)
-        writeln(i, " s: ", stack[i]);
-}
-
-// register-or-value
-T access(T)(T addr)
-{
-    if(RAM[addr] >= 32768 && RAM[addr] <= 32775)
-    {
-        return RAM[addr];
-    }
-    else
-        return addr;
-}
 
 bool exec(){
     ushort p() { return access(PC++); }
@@ -128,11 +110,13 @@ bool exec(){
         /*   write the address of the next instruction to the stack and jump to <a> */
         case 17:
             stack ~= cast(ushort)(PC + 1);
+            callstack.insertFront(stack[$-1]);
             PC = rd();
             break;
         /* ret: 18 */
         /*   remove the top element from the stack and jump to it; empty stack = halt */
         case 18:
+            callstack.removeFront(stack[$-1]);
             PC = stack[$-1];--stack.length;
             break;
         /* out: 19 a */
@@ -144,6 +128,10 @@ bool exec(){
         case 20:
             if(stdin_buf.length == 0) {
                 stdin_buf = stdin.readln();
+                while(stdin_buf[0] == ';') {
+                    handle_command(stdin_buf[1 ..$]);
+                    stdin_buf = stdin.readln();
+                }
             }
             ld() = cast(ushort)(stdin_buf[0]);
             stdin_buf = stdin_buf[1..$];
