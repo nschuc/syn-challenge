@@ -6,10 +6,13 @@ import util;
 
 ushort[32776] RAM;
 ushort[] stack;
-auto callstack = SList!ushort();
-string[ushort] callstack_labels;
 ushort PC = 0;
 ushort SP = 0;
+
+// Debugger Tools
+auto callstack = SList!ushort();
+string[ushort] callstack_labels;
+ushort[] breakpoints;
 
 string[] op_names = [
     "halt", "set", "push", "pop", "eq", "gt", "jmp", "jt", "jf", "add", "mult", "mod", "and", "or", "not", "rmem", "wmem", "call", "ret", "out", "in", "nop" 
@@ -111,6 +114,7 @@ bool exec(){
         case 17:
             stack ~= cast(ushort)(PC + 1);
             callstack.insertFront(stack[$-1]);
+            callstack_labels[stack[$-1]] = "stack frame";
             PC = rd();
             break;
         /* ret: 18 */

@@ -22,12 +22,28 @@ void print_callstack() {
     }
 }
 
+void print_stack() {
+    foreach(i, addr; stack) {
+        writeln(i, ": ", addr, " -> ", callstack_labels.get(addr, ""));
+    }
+}
+
+void add_breakpoint() {
+    breakpoints ~= PC;
+}
+
 void handle_command(string cmd) {
-    if(cmd.startsWith("cs")) {
+    if(cmd.startsWith("s")) {
+        print_stack();
+    }
+    if(cmd.startsWith("c")) {
         print_callstack();
     }
     if(cmd.startsWith("i")) {
         dbg(PC-1);
+    }
+    if(cmd.startsWith("b")) {
+        add_breakpoint();
     }
 }
 
