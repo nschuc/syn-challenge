@@ -2,4 +2,6 @@
 docs.json
 __dummy.html
 *.o
+*.s
 *.obj
+*.bin
