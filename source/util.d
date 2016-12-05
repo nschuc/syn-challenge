@@ -40,7 +40,7 @@ void handle_command(string cmd) {
         print_callstack();
     }
     if(cmd.startsWith("i")) {
-        dbg(PC-1);
+        dbg(PC);
     }
     if(cmd.startsWith("b")) {
         add_breakpoint();

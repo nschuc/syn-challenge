@@ -145,6 +145,7 @@ bool exec(){
         case 21:
             break;
     }
+    PC++;
     return true;
 }
 
