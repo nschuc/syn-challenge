@@ -2,6 +2,7 @@ module vm;
 import std.stdio;
 import std.file;
 import std.container : SList;
+import std.algorithm.searching : canFind;
 import util;
 
 ushort[32776] RAM;
@@ -13,6 +14,7 @@ ushort SP = 0;
 auto callstack = SList!ushort();
 string[ushort] callstack_labels;
 ushort[] breakpoints;
+bool debugging = false;
 
 string[] op_names = [
     "halt", "set", "push", "pop", "eq", "gt", "jmp", "jt", "jf", "add", "mult", "mod", "and", "or", "not", "rmem", "wmem", "call", "ret", "out", "in", "nop" 
@@ -20,10 +22,22 @@ string[] op_names = [
 
 string stdin_buf;
 
+void start_vm(ushort[] bytes)
+{
+    RAM[0..bytes.length] = bytes;
+    while(exec()) {
+        if(canFind(breakpoints, PC)) debugging = true;
+        if(debugging) {
+            dbg(PC);
+        }
+    }
+}
+
+ushort p() { return access(PC++); }
+ushort rd() { return RAM[p()]; }
+auto ref ld() { return RAM[p()]; }
+
 bool exec(){
-    ushort p() { return access(PC++); }
-    ushort rd() { return RAM[p()]; }
-    auto ref ld() { return RAM[p()]; }
     final switch(RAM[PC++]) {
         /* halt: 0 */
         /*   stop execution and terminate the program */
@@ -133,7 +147,7 @@ bool exec(){
             if(stdin_buf.length == 0) {
                 stdin_buf = stdin.readln();
                 while(stdin_buf[0] == ';') {
-                    handle_command(stdin_buf[1 ..$]);
+                    handle_command(stdin_buf[1 .. $]);
                     stdin_buf = stdin.readln();
                 }
             }
@@ -145,13 +159,5 @@ bool exec(){
         case 21:
             break;
     }
-    PC++;
     return true;
-}
-
-
-void start_vm(ushort[] bytes)
-{
-    RAM[0..bytes.length] = bytes;
-    while(exec()) {}
 }
