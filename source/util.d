@@ -8,10 +8,12 @@ void dbg(size_t addr) {
     assert(RAM[addr] <= 21);
     writeln("OP_NAME: ", op_names[RAM[addr]]);
     foreach(i; 0..3) writeln(cast(char)('A' + i), ": ", RAM[addr + i + 1]);
-    foreach(i ; 0..8)
+    foreach(i ; 0..8) {
         writeln(i, " r: ", RAM[32768 + i]);
-    for(int i = 0; i < stack.length; ++i)
-        writeln(i, " s: ", stack[i]);
+    }
+    for(int i = 0; i < stack.length; ++i) {
+        writeln(i, " s: ", stack[i], " ", callstack_labels.get(stack[i], ""));
+    }
 }
 
 void print_callstack() {
